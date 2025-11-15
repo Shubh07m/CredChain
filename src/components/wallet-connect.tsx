@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "./ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Wallet, LogOut, Copy } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/use-toast"
 
 interface WalletConnectProps {
   onAccountChange?: (account: string) => void
@@ -147,14 +147,16 @@ export function WalletConnect({ onAccountChange }: WalletConnectProps) {
   }
 
   const switchToSepolia = async () => {
+    if (!window.ethereum) return
+
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: "0xaa36a7" }],
       })
     } catch (error: any) {
+      // This error code indicates that the chain has not been added to MetaMask.
       if (error.code === 4902) {
-        // Network not added, add it
         try {
           await window.ethereum.request({
             method: "wallet_addEthereumChain",
@@ -167,7 +169,7 @@ export function WalletConnect({ onAccountChange }: WalletConnectProps) {
                   symbol: "SEP",
                   decimals: 18,
                 },
-                rpcUrls: ["https://sepolia.infura.io/v3/"],
+                rpcUrls: ["https://rpc.sepolia.org"],
                 blockExplorerUrls: ["https://sepolia.etherscan.io/"],
               },
             ],
@@ -175,6 +177,12 @@ export function WalletConnect({ onAccountChange }: WalletConnectProps) {
         } catch (addError) {
           console.error("Error adding network:", addError)
         }
+      } else {
+        toast({
+          title: "Switch Failed",
+          description: "Could not switch to the Sepolia network.",
+          variant: "destructive",
+        })
       }
     }
   }

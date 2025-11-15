@@ -1,11 +1,8 @@
-"use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Building, GraduationCap, Download, Share2, Eye, ExternalLink } from "lucide-react"
-import Link from "next/link"
-
+ 
 interface CredentialCardProps {
   credential: {
     id: string
@@ -95,11 +92,11 @@ export function CredentialCard({ credential, onDownload, onShare }: CredentialCa
               Share
             </Button>
           )}
-          <Link href={`/verify?hash=${credential.ipfsHash}`}>
+          <a href={`/verify?hash=${credential.ipfsHash}`} className="inline-block">
             <Button size="sm" variant="outline">
               <Eye className="w-4 h-4" />
             </Button>
-          </Link>
+          </a>
         </div>
       </CardContent>
     </Card>

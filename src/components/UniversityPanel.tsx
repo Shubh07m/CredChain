@@ -3,7 +3,8 @@
 import { useState } from 'react'; // 'React' removed, only 'useState' is a value
 import type { FC, FormEvent, ChangeEvent } from 'react'; // Types imported separately
 import { ethers, Contract, BrowserProvider } from 'ethers';
-import { LoadingSpinner, AlertBox } from './ui'; // Assuming ui.tsx
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, AlertCircle, CheckCircle, Info } from "lucide-react";
 //
 // --- ⚠️ ACTION REQUIRED ---
 // You must import callGeminiAPI and marked from your utility files
@@ -218,7 +219,7 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
         >
           {isLoading ? (
             <>
-              <LoadingSpinner />
+              <Loader2 className="h-5 w-5 animate-spin" />
               <span>Processing...</span>
             </>
           ) : (
@@ -233,11 +234,21 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
       </form>
 
       {message && (
-        <AlertBox 
-          type={message.type} 
-          message={message.text} 
-          onClose={() => setMessage(null)} 
-        />
+        <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
+          {message.type === 'success' && <CheckCircle className="h-4 w-4" />}
+          {message.type === 'error' && <AlertCircle className="h-4 w-4" />}
+          {message.type === 'info' && <Info className="h-4 w-4" />}
+          <AlertTitle>
+            {
+              {
+                success: 'Success',
+                error: 'Error',
+                info: 'Information',
+              }[message.type]
+            }
+          </AlertTitle>
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
       )}
 
       {showGeminiFeature && (
@@ -250,7 +261,7 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
           >
             {isGenerating ? (
               <>
-                <LoadingSpinner />
+                <Loader2 className="h-5 w-5 animate-spin" />
                 <span>Generating...</span>
               </>
             ) : (
@@ -263,7 +274,7 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
             )}
           </button>
           {geminiSuggestions && (
-            <div className="bg-purple-50 p-4 rounded-lg prose prose-purple max-w-none">
+            <div className="bg-purple-50 p-4 rounded-lg prose prose-purple max-w-none text-red-800 focus:text-black-500">
               {/* This is a simple way to render markdown. For safety, `marked` is better */}
               <div dangerouslySetInnerHTML={{ __html: marked(geminiSuggestions) }} />
             </div>

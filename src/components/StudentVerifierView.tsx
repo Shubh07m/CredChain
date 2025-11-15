@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import type { FC } from 'react';
-import type { Contract, BrowserProvider } from 'ethers';
-import { AlertBox } from './ui'; // Assuming you have this
+import type { Contract, BrowserProvider } from 'ethers'; 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { ContractCredentialCard } from './ContractCredentialCard';
 import type { ContractCredential } from './ContractCredentialCard';
 
@@ -19,10 +20,6 @@ const callGeminiAPI = async (prompt: string): Promise<string> => {
   console.log("Calling mock Gemini API with prompt:", prompt);
   return new Promise(resolve => setTimeout(() => resolve("Mock LinkedIn post..."), 1000));
 };
-
-// Dummy LoadingSpinner
-const LoadingSpinner: FC = () => <div className="text-center p-4">Loading...</div>;
-
 
 // Define props
 interface StudentVerifierViewProps {
@@ -83,10 +80,16 @@ export const StudentVerifierView: FC<StudentVerifierViewProps> = ({ contract, ac
       <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-md">
         <h3 className="text-2xl font-bold text-gray-800 mb-4">My Credentials</h3>
         
-        {errorMsg && <AlertBox type="error" message={errorMsg} onClose={() => setErrorMsg('')} />}
+        {errorMsg && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{errorMsg}</AlertDescription>
+          </Alert>
+        )}
 
         {isMyCredsLoading ? (
-          <LoadingSpinner />
+          <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
         ) : myCredentials.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2">
             {myCredentials.map(cred => (

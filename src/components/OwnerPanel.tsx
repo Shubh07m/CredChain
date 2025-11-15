@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import type { FC, FormEvent } from 'react';
 import { ethers, Contract, BrowserProvider } from 'ethers';
-import { LoadingSpinner, AlertBox } from './ui'; // Assuming ui.tsx
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, AlertCircle, CheckCircle, Info } from "lucide-react";
 
 // Define a reusable Message type
 interface Message {
@@ -140,7 +141,7 @@ export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
             className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex justify-center items-center space-x-2"
           >
             {isLoading ? (
-              <LoadingSpinner />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +159,7 @@ export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
             className="flex-1 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex justify-center items-center space-x-2"
           >
             {isLoading ? (
-              <LoadingSpinner />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,11 +173,21 @@ export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
       </form>
 
       {message && (
-        <AlertBox 
-          type={message.type} 
-          message={message.text} 
-          onClose={() => setMessage(null)} 
-        />
+        <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
+          {message.type === 'success' && <CheckCircle className="h-4 w-4" />}
+          {message.type === 'error' && <AlertCircle className="h-4 w-4" />}
+          {message.type === 'info' && <Info className="h-4 w-4" />}
+          <AlertTitle>
+            {
+              {
+                success: 'Success',
+                error: 'Error',
+                info: 'Information',
+              }[message.type]
+            }
+          </AlertTitle>
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
       )}
     </div>
   );
