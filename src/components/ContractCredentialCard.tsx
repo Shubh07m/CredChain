@@ -2,6 +2,16 @@
 import type { FC } from 'react';
 import type { BrowserProvider } from 'ethers';
 import { useEffect, useState } from 'react'; // Imports are correct
+import { CopyButton } from './ui/shadcn-io/copy-button';
+import { Button } from "./ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 // --- This is the data structure from your CONTRACT ---
 export interface ContractCredential {
@@ -61,7 +71,7 @@ export const ContractCredentialCard: FC<ContractCredentialCardProps> = ({
   handleDraftPost,
   isDrafting
 }) => {
-  const [isCopied, setIsCopied] = useState(false);
+  const [, setIsCopied] = useState(false);
   const credIdString = cred.id.toString();
 
   // --- NEW --- Truncate the ID
@@ -78,41 +88,48 @@ export const ContractCredentialCard: FC<ContractCredentialCardProps> = ({
   };
 
   return (
-    <div className="font-main bg-gray-50 border p-4 rounded-lg shadow-sm space-y-2 break-inside-avoid">
-      
-      {/* --- MODIFIED --- ID display with Copy button */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400 font-mono" title={credIdString}>
+    <div className="px-1 py-2">
+      <div className="h-full mx-auto sm:max-w-lg lg:max-w-2xl space-y-4">
+        <Card className="h-full flex flex-col bg-black/60 backdrop-blur-2xl text-white border-white/10 shadow-xl">
+        <CardHeader>
+          <CardTitle>
+            Credential(s) Found
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+        <Label title={credIdString}>
           ID: {truncatedId}
-        </p>
-        <button 
+        </Label>
+        {/* <button 
           onClick={handleCopyId} 
           className="text-gray-400 hover:text-blue-600 p-1 -m-1" // Button with small padding
           title="Copy full ID"
         >
-          {isCopied ? (
+          {isCopied(
             <span className="text-xs font-medium text-blue-600">Copied!</span>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
           )}
-        </button>
-      </div>
+        </button> */}
+        <CopyButton
+        onClick={handleCopyId} 
+        variant="default" size="md" 
+        />
+        </div>
+      
       {/* --- END MODIFICATION --- */}
 
-      <p className="font-bold text-blue-600 break-words">{cred.credentialType}</p>
-      <p className="text-sm text-gray-500 break-words">
+      <p>{cred.credentialType}</p>
+      <CardDescription>
         Issued by: <AddressDisplay address={cred.universityAddress} provider={provider} />
-      </p>
-      {!isStudentView && (
-        <p className="text-sm text-gray-500 break-words">
+      </CardDescription>
+      {isStudentView && (
+        <p>
           Issued to: <AddressDisplay address={cred.studentAddress} provider={provider} />
         </p>
       )}
-      <p className={`text-sm font-semibold ${cred.isValid ? 'text-green-600' : 'text-red-600'}`}>
+      <CardDescription className={`text-sm ${cred.isValid ? 'text-green-600' : 'text-red-600'}`}>
         Status: {cred.isValid ? 'Valid' : 'Revoked'}
-      </p>
+      </CardDescription>
       {cred.ipfsHash && (
         <a 
           href={`https://gateway.pinata.cloud/ipfs/${cred.ipfsHash}`} 
@@ -124,15 +141,19 @@ export const ContractCredentialCard: FC<ContractCredentialCardProps> = ({
         </a>
       )}
       
+
       {isStudentView && handleDraftPost && (
-        <button 
-          onClick={() => handleDraftPost(cred.credentialType)} 
-          disabled={isDrafting} 
-          className="text-xs bg-indigo-100 text-indigo-700 font-semibold py-1 px-3 rounded-full hover:bg-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+        <Button 
+        onClick={() => handleDraftPost(cred.credentialType)} 
+        disabled={isDrafting}
+        size={'sm'} 
         >
           {isDrafting ? 'Drafting...' : '✨ Draft Announcement'}
-        </button>
+        </Button>
       )}
+      </CardContent>
+      </Card>
+      </div>
     </div>
   );
 };

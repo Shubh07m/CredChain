@@ -3,8 +3,27 @@
 import { useState } from 'react'; // 'React' removed, only 'useState' is a value
 import type { FC, FormEvent, ChangeEvent } from 'react'; // Types imported separately
 import { ethers, Contract, BrowserProvider } from 'ethers';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Loader2, AlertCircle, CheckCircle, Info } from "lucide-react";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  TabsContents,
+} from '@/components/ui/shadcn-io/tabs';
+
 //
 // --- ⚠️ ACTION REQUIRED ---
 // You must import callGeminiAPI and marked from your utility files
@@ -45,6 +64,59 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [lastIssuedType, setLastIssuedType] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  // --- ADD THESE NEW STATES ---
+const [revokeId, setRevokeId] = useState<string>('');
+const [isRevoking, setIsRevoking] = useState<boolean>(false);
+const [revokeMessage, setRevokeMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+
+const handleRevokeCredential = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // TypeScript check: ensure contract exists
+    if (!contract) {
+        setRevokeMessage({ type: 'error', text: 'Contract not connected.' });
+        return;
+    }
+
+    const idToRevoke = revokeId.trim();
+    
+    // Basic check if it's a number string
+    if (!idToRevoke || !/^\d+$/.test(idToRevoke)) { 
+        setRevokeMessage({ type: 'error', text: 'Please enter a valid Credential ID (numeric).' });
+        return;
+    }
+    
+    setIsRevoking(true);
+    setRevokeMessage({ type: 'info', text: 'Submitting revocation... Please confirm in MetaMask.' });
+    
+    try {
+        const tx = await contract.revokeCredential(idToRevoke);
+        await tx.wait();
+        setRevokeMessage({ type: 'success', text: `Credential #${idToRevoke} has been revoked.` });
+        setRevokeId('');
+    } catch (err: any) {
+        console.error("Error revoking credential:", err);
+        let friendlyError = 'Transaction failed. Check console.';
+        
+        // Error parsing logic
+        if (err.reason) { friendlyError = err.reason; } 
+        else if (err.data?.message) { friendlyError = err.data.message; }
+        else if (err.message) { friendlyError = err.message.split('(')[0]; }
+        
+        if (friendlyError.includes("Not the issuing university")) {
+                friendlyError = "Revocation failed: Only the original issuing university can revoke this credential.";
+        } else if (friendlyError.includes("Credential already revoked")) {
+                friendlyError = "Credential already revoked.";
+        } else if (friendlyError.includes("Credential not found")) {
+                friendlyError = "Credential ID not found.";
+        }
+
+        setRevokeMessage({ type: 'error', text: friendlyError });
+    }
+    setIsRevoking(false);
+};
+
 
   const handleIssueCredential = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -151,54 +223,70 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
   };
 
   return (
-    <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm space-y-6">
-      <div className="flex items-center space-x-3">
-        <div className="bg-blue-100 p-2 rounded-lg">
-          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <Tabs defaultValue="account" className="w-[400px] bg-muted rounded-lg">
+      <TabsList  className="grid w-full grid-cols-2" transition={{ type: 'spring', stiffness: 300, damping: 15, mass: 1.2 }}>
+        <TabsTrigger value="issue">Issue</TabsTrigger>
+        <TabsTrigger value="revoke">Revoke</TabsTrigger>
+      </TabsList>
+      <TabsContents className="mx-1 mb-1 -mt-2 rounded-sm h-full bg-background" transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }}>
+        <TabsContent value="issue" className="space-y-6 p-6">
+      {/* <Card className="w-full max-w-sm bg-zinc-900 border-zinc-700 text-white shadow-lg"> */}
+        <Card className="w-full max-w-2xl md:max-w-3xl bg-black/60 backdrop-blur-2xl text-white border-white/10 shadow-xl">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center gap-3 w-full">
+          <svg className="w-6 h-6 text-white-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800">Issue New Credential</h2>
-      </div>
-
-      <form onSubmit={handleIssueCredential} className="space-y-4">
-        <div>
-          <label htmlFor="studentAddress" className="block text-sm font-medium text-gray-700 mb-1">
+          <CardTitle>Issue Credential</CardTitle>
+          </div>
+          <CardDescription>
+            Issue a credential for a student by filling out the form below.
+          </CardDescription>
+        </CardHeader>
+      <CardContent>
+              <form onSubmit={handleIssueCredential} className="space-y-4">
+        <div className="grid w-full items-center gap-4">
+          <Label htmlFor="studentAddress">
             Student's Ethereum Address or ENS
-          </label>
-          <input
+          </Label>
+          <Input
             id="studentAddress"
-            type="text"
             value={studentAddress}
             onChange={(e) => setStudentAddress(e.target.value)}
             placeholder="0x... or student.eth"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-red-800 focus:text-black-500"
           />
         </div>
 
-        <div>
-          <label htmlFor="credentialType" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="flex flex-col space-y-1.5">
+          <Label htmlFor="credentialType">
             Credential Type
-          </label>
-          <input
+          </Label>
+          
+          <Input
             id="credentialType"
-            type="text"
             value={credentialType}
             onChange={(e) => setCredentialType(e.target.value)}
             placeholder="e.g., Bachelor of Science in Computer Science"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-red-800 focus:text-black-500"
           />
         </div>
 
-        <div>
-          <label htmlFor="credentialFile" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="flex flex-col space-y-1.5">
+          <Label htmlFor="credentialFile">
             Credential Document
-          </label>
-          <input
+          </Label>
+          <Input
             id="credentialFile"
             type="file"
             onChange={handleFileChange}
-            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="text-white
+      file:text-white
+      file:bg-slate-900
+      file:border-0
+      file:rounded-md
+      file:px-3
+      file:py-1
+      file:mr-3
+      file:cursor-pointer"
           />
           {uploadProgress > 0 && uploadProgress < 100 && (
             <div className="mt-2">
@@ -212,10 +300,9 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
           )}
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex justify-center items-center space-x-2"
         >
           {isLoading ? (
             <>
@@ -230,9 +317,10 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
               <span>Issue Credential</span>
             </>
           )}
-        </button>
+        </Button>
       </form>
-
+      </CardContent>
+      <CardFooter className="flex justify-between">
       {message && (
         <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
           {message.type === 'success' && <CheckCircle className="h-4 w-4" />}
@@ -250,6 +338,65 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
           <AlertDescription>{message.text}</AlertDescription>
         </Alert>
       )}
+      </CardFooter>
+      </Card>
+      </TabsContent>
+
+
+<TabsContent value="revoke" className="space-y-6 p-6">
+<Card className="w-full max-w-2xl md:max-w-3xl bg-black/60 backdrop-blur-2xl text-white border-white/10 shadow-xl">
+<CardHeader>
+          <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center gap-3 w-full">
+                <CardTitle>Revoke Credential</CardTitle>
+          </div>
+          <CardDescription>
+            Revoke a credential by Student ID.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+                <form onSubmit={handleRevokeCredential} className="space-y-4">
+                    <div>
+                        <Label htmlFor="revokeId">Credential ID</Label>
+                        <Input 
+                            id="revokeId" 
+                            type="text" 
+                            value={revokeId} 
+                            onChange={(e) => setRevokeId(e.target.value)} 
+                            placeholder="0x... or student.eth" 
+                        />
+                    </div>
+                    <Button 
+                        type="submit" 
+                        disabled={isRevoking} 
+                    >
+                        {isRevoking ? 'Processing...' : 'Revoke Credential'}
+                    </Button>
+                </form>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                {revokeMessage && (
+                  <Alert variant={revokeMessage.type === 'error' ? 'destructive' : 'default'}>
+                    
+                        {revokeMessage.type === 'success' && <CheckCircle className="h-4 w-4" />}
+                        {revokeMessage.type === 'error' && <AlertCircle className="h-4 w-4" />}
+                        {revokeMessage.type === 'info' && <Info className="h-4 w-4" />}
+                        <AlertTitle>
+            {
+              {
+                success: 'Success',
+                error: 'Error',
+                info: 'Information',
+              }[revokeMessage.type]
+            }
+          </AlertTitle>
+          <AlertDescription>{revokeMessage.text}</AlertDescription>
+                </Alert>
+                )}
+                </CardFooter>
+</Card>
+</TabsContent>
+</TabsContents>
+
 
       {showGeminiFeature && (
         <div className="border-t pt-4 mt-4 space-y-3">
@@ -281,6 +428,6 @@ export const UniversityPanel: FC<UniversityPanelProps> = ({ contract, provider, 
           )}
         </div>
       )}
-    </div>
+    </Tabs>
   );
 };

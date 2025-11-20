@@ -7,6 +7,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { ContractCredentialCard } from './ContractCredentialCard';
 import type { ContractCredential } from './ContractCredentialCard';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { CopyButton } from './ui/shadcn-io/copy-button';
 
 //
 // --- ⚠️ ACTION REQUIRED ---
@@ -75,10 +84,16 @@ export const StudentVerifierView: FC<StudentVerifierViewProps> = ({ contract, ac
   };
 
   return (
-    <div className="space-y-8">
+    <div className="w-full px-4 py-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-lg lg:max-w-2xl space-y-4">
       {/* --- This is now the ONLY part of this component --- */}
-      <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-md">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">My Credentials</h3>
+        <Card className="w-full max-w-2xl md:max-w-3xl bg-black/60 backdrop-blur-2xl text-white border-white/10 shadow-xl">
+        <CardHeader>
+          <CardTitle>
+            My Credentials
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
         
         {errorMsg && (
           <Alert variant="destructive">
@@ -91,7 +106,7 @@ export const StudentVerifierView: FC<StudentVerifierViewProps> = ({ contract, ac
         {isMyCredsLoading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
         ) : myCredentials.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="mx-auto w-full max-w-md sm:max-w-lg lg:max-w-2xl space-y-4">
             {myCredentials.map(cred => (
               <ContractCredentialCard
                 key={cred.id.toString()}
@@ -118,18 +133,18 @@ export const StudentVerifierView: FC<StudentVerifierViewProps> = ({ contract, ac
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No credentials</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <Label htmlFor="Creds">No credentials</Label>
+            <CardDescription className="mt-1 text-sm text-gray-500">
               No credentials have been issued to your address yet.
-            </p>
+            </CardDescription>
           </div>
         )}
 
         {draftPost && (
           <div className="mt-6 border-t pt-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">
+            <Label htmlFor="announcementDraft">
               Your Announcement Draft
-            </h4>
+            </Label>
             <div className="bg-gray-50 rounded-lg p-4">
               <textarea
                 value={draftPost}
@@ -137,15 +152,14 @@ export const StudentVerifierView: FC<StudentVerifierViewProps> = ({ contract, ac
                 rows={6}
                 className="w-full p-2 border rounded-md bg-white"
               />
-              <button
+              <CopyButton 
                 onClick={handleCopy}
-                className="mt-2 inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Copy to Clipboard
-              </button>
+              />
             </div>
           </div>
         )}
+        </CardContent>
+        </Card>
       </div>
     </div>
   );
