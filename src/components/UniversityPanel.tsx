@@ -223,7 +223,7 @@ const handleRevokeCredential = async (e: React.FormEvent) => {
   };
 
   return (
-    <Tabs defaultValue="account" className="w-[400px] bg-muted rounded-lg">
+    <Tabs defaultValue="issue" className="w-full max-w-md bg-muted rounded-lg mx-auto">
       <TabsList  className="grid w-full grid-cols-2" transition={{ type: 'spring', stiffness: 300, damping: 15, mass: 1.2 }}>
         <TabsTrigger value="issue">Issue</TabsTrigger>
         <TabsTrigger value="revoke">Revoke</TabsTrigger>

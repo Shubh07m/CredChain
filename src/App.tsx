@@ -570,7 +570,7 @@ function App() {
 						</div>
 					</nav>
 				</header>
-				<main className="flex-1">
+				<main className="flex-1 flex flex-col">
 					<section className="w-full h-[420px] flex items-center justify-center">
 						<EtheralShadow
 							color="rgba(128, 128, 128, 1)"
@@ -589,7 +589,7 @@ function App() {
 						</EtheralShadow>
 						</section>
 
-					<AuroraBackground className="items-start justify-start bg-black text-white">
+					<AuroraBackground className="items-start justify-start bg-black text-white flex-1 min-h-0 h-auto w-full">
 						<div className="container mx-auto px-4 sm:px-6 py-10">
 
 						{networkError && (

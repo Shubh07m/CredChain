@@ -135,7 +135,8 @@ function TabsList({
   return (
     <MotionHighlight
       controlledItems
-      className={cn('rounded-lg bg-muted shadow-inner overflow-hidden relative', activeClassName)}
+      className={cn('rounded-lg bg-muted shadow-inner overflow-hidden relative w-full',
+        activeClassName)}
       value={activeValue}
       transition={transition}
     >
@@ -143,7 +144,7 @@ function TabsList({
         role="tablist"
         data-slot="tabs-list"
         className={cn(
-          'flex w-full items-center justify-center p-1 gap-2 bg-black/10',
+          'flex w-full items-center justify-center p-1 gap-2 bg-transparent h-auto',
           className,
         )}
         {...props}
@@ -187,7 +188,7 @@ function TabsTrigger({
         data-state={activeValue === value ? 'active' : 'inactive'}
         // style={{ backgroundColor: 'transparent' }}
         className={cn(
-          'inline-flex relative z-10 cursor-pointer items-center justify-center w-full h-full whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground data-[state=active]:shadow-sm bg-transparent hover:bg-transparent text-muted-foreground',
+          'inline-flex relative z-10 cursor-pointer items-center justify-center w-full h-full whitespace-nowrap rounded-md px-2 py-2 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground data-[state=active]:shadow-sm bg-transparent hover:bg-transparent text-muted-foreground min-w-0 truncate',
           className,
         )}
         {...props}

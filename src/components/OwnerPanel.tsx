@@ -37,10 +37,11 @@ const ENS_SUPPORTED_CHAINS = [
 
 export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
   const [uniAddress, setUniAddress] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<Message | null>(null);
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  const handleTransaction = async (action: 'addUniversity' | 'removeUniversity') => {
+  const handleTransaction = async (actionType: 'addUniversity' | 'removeUniversity') => {
+    setLoadingAction(actionType);
     setMessage(null);
     if (!contract || !provider) {
       setMessage({ type: 'error', text: 'Contract or provider not initialized.' });
@@ -77,18 +78,23 @@ export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
         if (!normalizedAddress) {
           throw new Error("Invalid address or unresolvable ENS name");
         }
+        if (actionType === 'addUniversity') {
+            await contract.addUniversity(uniAddress);
+        } else {
+            await contract.removeUniversity(uniAddress);
+        }
       } catch (err) {
         console.warn("Could not resolve ENS name or invalid address:", err);
         setMessage({ type: 'error', text: 'Please enter a valid Ethereum address or a resolvable ENS name.' });
         return;
-      }
+      }finally {
+        setLoadingAction(null); // Reset to null
     }
-    // --- END GUARD 1 ---
+    }
 
-    setIsLoading(true);
     setMessage({ type: 'info', text: 'Submitting transaction... Please confirm in your wallet.' });
     try {
-      const tx = await contract[action](normalizedAddress);
+      const tx = await contract[actionType](normalizedAddress);
       setMessage({ type: 'info', text: 'Transaction submitted. Waiting for confirmation...' });
       await tx.wait();
       
@@ -106,13 +112,14 @@ export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
       }
       // --- END GUARD 2 ---
       
-      setMessage({ type: 'success', text: `University ${displayAddress} ${action === 'addUniversity' ? 'added' : 'removed'} successfully!` });
+      setMessage({ type: 'success', text: `University ${displayAddress} ${actionType === 'addUniversity' ? 'added' : 'removed'} successfully!` });
       setUniAddress('');
     } catch (err: any) {
-      console.error(`Error with ${action}:`, err);
+      console.error(`Error with ${actionType}:`, err);
       setMessage({ type: 'error', text: err.reason || 'Transaction failed. Please check console for details.' });
+    }finally {
+      setLoadingAction(null); 
     }
-    setIsLoading(false);
   };
 
   return (
@@ -151,16 +158,16 @@ export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
           <Button
             type="button" 
             onClick={() => handleTransaction('addUniversity')}
-            disabled={isLoading}
+            disabled={loadingAction !== null}
           >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <span>Add University</span>
+            {loadingAction === 'addUniversity' ? (
+      <Loader2 className="h-5 w-5 animate-spin" />
+    ) : (
+      <>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        <span>Add University</span>
               </>
             )}
           </Button>
@@ -168,16 +175,16 @@ export const OwnerPanel: FC<OwnerPanelProps> = ({ contract, provider }) => {
           <Button
             type="button"
             onClick={() => handleTransaction('removeUniversity')}
-            disabled={isLoading}
+            disabled={loadingAction !== null}
           >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span>Remove University</span>
+            {loadingAction === 'removeUniversity' ? (
+      <Loader2 className="h-5 w-5 animate-spin" />
+    ) : (
+      <>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span>Remove University</span>
               </>
             )}
           </Button>
